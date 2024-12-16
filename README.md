@@ -18,7 +18,7 @@ source opticalFlow/bin/activate
 
 ### 3. Install pytorch
 ```bash 
-pip3 install torch torchvision torchaudio
+pip3 install torch torchvision
 ```
 
 ### 4. Install MMVC and MIM
