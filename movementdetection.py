@@ -8,15 +8,15 @@ import csv
 import pandas as pd
 import subprocess
 
-# Ensure the script receives a video filename as an argument
+# Ensure receives a video filename as an argument
 if len(sys.argv) != 2:
     print("Usage: python process_video.py <video_filename>")
     sys.exit(1)
 
-# Input video filename
+#Input video filename
 filename = sys.argv[1]
 
-# Derived paths and settings
+#Derived paths and settings
 folder_name = filename.replace(".mp4", "")
 os.makedirs(folder_name, exist_ok=True)
 
@@ -27,7 +27,7 @@ os.makedirs(output_frames_path, exist_ok=True)
 resize_width = 224
 resize_height = 224
 
-# Function to find the last processed frame
+#Function to find the last processed frame
 
 def last_frame_processed(csvpath):
     if not os.path.exists(csvpath):
@@ -36,20 +36,20 @@ def last_frame_processed(csvpath):
         df = pd.read_csv(csvpath)
         return int(df.iloc[-1]["Frame_index"])
 
-# Step 1: Extract frames using ffmpeg
+#Extract frames using ffmpeg
 subprocess.run([
     "ffmpeg", "-i", video_path,
     "-vf", f"scale={resize_width}:{resize_height}",
     os.path.join(output_frames_path, "frame_%04d.png")
 ])
 
-# Step 2: Initialize the model
-config_file = 'pwcnet_ft_4x1_300k_sintel_final_384x768.py'  # Update this path
-checkpoint_file = 'pwcnet_ft_4x1_300k_sintel_final_384x768.pth'  # Update this path
+#Initialize the model and configuration
+config_file = 'pwcnet_ft_4x1_300k_sintel_final_384x768.py' 
+checkpoint_file = 'pwcnet_ft_4x1_300k_sintel_final_384x768.pth' 
 device = 'cuda'
 model = init_model(config_file, checkpoint_file, device=device)
 
-# Step 3: Process frames
+#Process frames
 frame_files = sorted(glob.glob(os.path.join(output_frames_path, "*.png")))
 output_csv_path = os.path.join(folder_name, "motion_data.csv")
 magnitude_list = []
@@ -79,7 +79,7 @@ with open(output_csv_path, 'a', newline='') as file:
         total_motion = np.sum(magnitude)
         writer.writerow([i, total_motion, average_motion])
 
-# Step 4: Plot normalized motion
+# Read for normalized data
 motion_data = pd.read_csv(output_csv_path)
 x_data = motion_data['Frame_index'].tolist()
 avg_motion = motion_data['avgMotion'].tolist()
@@ -90,7 +90,7 @@ min_val = min(scaled_avg_motion)
 max_val = max(scaled_avg_motion)
 normalized_motion = [(val - min_val) / (max_val - min_val) if max_val != min_val else 0 for val in scaled_avg_motion]
 
-# Save plot as HTML
+# Save normalized data
 plot_data = pd.DataFrame({
     'Frame Index': x_data,
     'Normalized Motion': normalized_motion
